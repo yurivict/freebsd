@@ -1,4 +1,4 @@
-# This file contains various how-tos intended to aid in FreeBSD ports creation.
+# Various how-tos intended to aid in FreeBSD ports creation
 
 ## The project doesn't provide tarballs, and only offers the Git repository. How to fetch such code?
 
@@ -62,4 +62,25 @@ Resolving deltas: 100% (23910/23910), done.
 ```
 
 The ```3.2.7-391``` part should be put in ```DISTVERSION```, and the ```-gf1e9f1d6``` part should be put in ```DISTVERSIONSUFFIX```.
+
+## How to run tests in a cmake-based port?
+
+Let's assume that the project enables tests with ```BUILD_TESTS``` cmake variable, and runs them with ```test``` target.
+
+You should first disable tests for build:
+```
+CMAKE_OFF+=BUILD_TESTS
+```
+and then enable tests by creating the ```do-test``` target like this:
+```
+do-test:
+	@cd ${BUILD_WRKSRC} && \
+		${SETENV} ${CONFIGURE_ENV} ${CMAKE_BIN} ${CMAKE_ARGS} -DBUILD_TESTS=ON ${CMAKE_SOURCE_PATH} && \
+		${SETENV} ${MAKE_ENV} ${MAKE_CMD} ${MAKE_ARGS} ${ALL_TARGET} && \
+		${SETENV} ${MAKE_ENV} ${MAKE_CMD} ${MAKE_ARGS} test
+```
+```make test``` will first re-configure the project with tests enabled, then build them, and then will run them.
+
+This approach is better than creating the ```TEST``` port option, because testing should only happen during build,
+and once the port is installed users don't need to see the ```TEST``` option.
 
