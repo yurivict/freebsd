@@ -26,3 +26,40 @@ It depends on the variables:
 
 The latter three variables are converted to ```DISTVERSIONFULL``` by the framework, and ```DISTVERSIONFULL``` is used here.
 
+
+## How to get the Git identifier of the remote Git repository?
+
+You can use this script ```git-remote-describe-tag```:
+```
+#!/bin/sh
+
+REPO=$1
+REV=$2
+
+DIR=$(echo $1 | sed -e 's|.*/|| ; s|\.git$||')
+
+(
+  git clone $REPO &&
+  (cd $DIR && git describe --tags $2);
+  rm -rf $DIR
+)
+```
+
+Save this code into the file git-remote-describe, and invoke it as:
+```
+git-remote-describe-tag {git-url} [{git-tag}]
+```
+
+It prints the tag, when possible, i.e. when the repository has a release tag:
+```
+$ git-remote-describe-tag git@github.com:freebsd/poudriere.git
+Cloning into 'poudriere'...
+remote: Counting objects: 38672, done.
+remote: Total 38672 (delta 0), reused 0 (delta 0), pack-reused 38672
+Receiving objects: 100% (38672/38672), 13.03 MiB | 6.06 MiB/s, done.
+Resolving deltas: 100% (23910/23910), done.
+3.2.7-391-gf1e9f1d6
+```
+
+The ```3.2.7-391``` part should be put in ```DISTVERSION```, and the ```-gf1e9f1d6``` part should be put in ```DISTVERSIONSUFFIX```.
+
